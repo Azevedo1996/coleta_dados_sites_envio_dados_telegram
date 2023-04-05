@@ -1,0 +1,37 @@
+import requests
+from bs4 import BeautifulSoup
+import telegram
+
+# Configurações do bot do Telegram
+bot_token = "SEU_TOKEN_AQUI"
+bot_chatID = "SEU_CHAT_ID_AQUI"
+bot = telegram.Bot(token=bot_token)
+
+# Lista de URLs dos fundos imobiliários que queremos coletar informações
+fundos_urls = [
+    "https://www.fundsexplorer.com.br/funds/abc-imobiliario-fii-abcp11b",
+    "https://www.fundsexplorer.com.br/funds/abcp-fii-abcp11",
+    "https://www.fundsexplorer.com.br/funds/alaska-black-fidc-np"
+]
+
+for url in fundos_urls:
+    # Faz requisição HTTP para a página do fundo imobiliário
+    response = requests.get(url)
+
+    # Faz parsing do HTML da página usando BeautifulSoup
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    # Extrai as informações relevantes da página usando os identificadores HTML das tags
+    dividend_yield = soup.find('span', {'id': 'dividend_yield'}).text.strip()
+    liquidez_media_diaria = soup.find('span', {'id': 'liquidez_media_diaria'}).text.strip()
+    preco_atual = soup.find('span', {'id': 'preco_atual'}).text.strip()
+    setor = soup.find('div', {'class': 'category-label'}).text.strip()
+    dividendo = soup.find('span', {'id': 'dividendo'}).text.strip()
+    variacao_preco = soup.find('span', {'id': 'variacao_preco'}).text.strip()
+    patrimonio_liquido = soup.find('span', {'id': 'patrimonio_liquido'}).text.strip()
+
+    # Cria mensagem com as informações coletadas
+    mensagem = f"Dividend Yield: {dividend_yield}\nLiquidez Média Diária: {liquidez_media_diaria}\nPreço Atual: {preco_atual}\nSetor: {setor}\nDividendo: {dividendo}\nVariação de Preço: {variacao_preco}\nPatrimônio Líquido: {patrimonio_liquido}"
+
+    # Envia a mensagem para o grupo do Telegram
+    bot.send_message(chat_id=bot_chatID, text=mensagem)
